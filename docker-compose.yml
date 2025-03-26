@@ -60,10 +60,11 @@ services:
       - mosquitto_log:/mosquitto/log
 
   unity-webgl:
-    build: ./unity
+    build:
+      context: ./unity
+      dockerfile: Dockerfile
     ports:
-      - "80:80"  
-    restart: unless-stopped
+      - "80:80"
 
 volumes:
   influxdb_data:
