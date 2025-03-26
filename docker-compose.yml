@@ -1,0 +1,73 @@
+services:
+  influxdb:
+    image: quay.io/influxdb/influxdb3-core:latest
+    command: serve --node-id=${INFLUXDB_NODE_ID} --object-store=file --data-dir=/var/lib/influxdb3
+    ports:
+      - "${INFLUXDB_HTTP_PORT}:8181"
+    volumes:
+      - influxdb_data:/var/lib/influxdb3
+      - ./influxdb/config:/etc/influxdb3
+    environment:
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_ORG=${INFLUXDB_ORG}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8181/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  telegraf:
+    build:
+      context: ./telegraf
+      dockerfile: Dockerfile  # Solo si necesitas build personalizado
+    image: telegraf:latest    # Si no usas Dockerfile, usa esta línea en vez de build
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf  # Monta el archivo externo
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    environment:
+      - INFLUXDB_HOST=${INFLUXDB_HOST}
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_ORG=${INFLUXDB_ORG}
+      - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
+      - TELEGRAF_COLLECTION_INTERVAL=${TELEGRAF_COLLECTION_INTERVAL}
+      - HOSTNAME=telegraf
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+  
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+
+  unity-webgl:
+    build: ./unity
+    ports:
+      - "8080:80"  
+    restart: unless-stopped
+
+volumes:
+  influxdb_data:
+  grafana_data:
+  mosquitto_conf:
+  mosquitto_data:
+  mosquitto_log:

@@ -1,0 +1,18 @@
+MOSQUITTO
+  Luego de la instalacion del docker-compose, se debe ir al Volumen mosquitto_config y agregar las lineas:
+
+  listener 1883  
+  allow_anonymous true   // si no se quiere poner contraseña
+  allow_anonymous false  // si se desea colocar contraseña
+
+  Para agregar un nuevo usuario: 
+
+  Ir a Docker -> Open Terminal del Mosquitto y correr:
+
+  mosquitto_passwd -c /mosquitto/config/passwd nombre_usuario 
+
+  Luego te va solicitar la password
+
+NODE-RED
+  en el archivo data/settings.js se debe agregar antes del "module.exports =" la siguiente linea:
+  process.env.TZ = 'Europe/Madrid';
