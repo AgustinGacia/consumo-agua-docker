@@ -3,3 +3,4 @@ FROM nginx:alpine
 COPY ./unity/Build /usr/share/nginx/html
 # Exponemos el puerto 80 (HTTP)
 EXPOSE 80
+EXPOSE 9001
