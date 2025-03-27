@@ -61,7 +61,7 @@ services:
 
   unity-webgl:
     build:
-      context: ./unity
+      context: .
       dockerfile: Dockerfile
     ports:
       - "80:80"
